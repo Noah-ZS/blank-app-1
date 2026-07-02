@@ -52,7 +52,7 @@ with st.sidebar.expander("💶 Finance"):
 # ==========================================
 col_logo, col_user = st.columns([4, 1])
 with col_logo:
-    st.markdown("## 📊 **INFOCENTRE**")
+    st.image("image.png", width=300)
 with col_user:
     st.markdown("👤 **P. Dubois** | *Prod M3*")
 st.markdown("---")
