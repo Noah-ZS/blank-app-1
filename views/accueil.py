@@ -91,7 +91,7 @@ def render_accueil():
                 with st.container(border=True):
                     sc1, sc2 = st.columns([8, 2], vertical_alignment="center")
                     with sc1:
-                        render_list_card(title=r['title'], subtitle=r["department"], metadata="", icon="⭐")
+                        render_list_card(title=r['title'], subtitle=r["department"], metadata="aaaaaaaaaaaa", icon="⭐")
                     with sc2:
                         with st.popover("⚙️", use_container_width=True):
                             if st.button("Ouvrir le rapport", key=f"open_fav_pop_{r['id']}", use_container_width=True):
