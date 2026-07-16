@@ -16,11 +16,11 @@ def render_sidebar():
         st.divider()
         
         pages = {
-            "Accueil": {"label": "Accueil", "icon": ":material/home:"},
-            "liste_rapports": {"label": "📋 Liste des rapports", "icon": ":material/list:"},
-            "suivi_exploit": {"label": "📈 Suivi de l'exploit", "icon": ":material/track_changes:"},
-            "open_to_buy": {"label": "🛍️ Open to buy", "icon": ":material/shopping_cart:"},
-            "password_change": {"label": "🔒 Changer votre mot de passe", "icon": ":material/lock:"}
+            "accueil": "🏠 Accueil",
+            "liste_rapports": "📋 Liste des rapports",
+            "suivi_exploit": "📈 Suivi de l'exploit",
+            "open_to_buy": "🛍️ Open to buy",
+            "password_change": "🔒 Changer votre mot de passe"
         }
         
 
