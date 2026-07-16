@@ -1,8 +1,9 @@
 import streamlit as st
 import pandas as pd
 from services.db_client import fetch_product_data
+from components.typography import render_page_title
+from components.cards import render_list_card
 
-# Recursive child verification logic representing React state engine
 def is_descendant(f_id, target_id, folders):
     if target_id == 'tous': return True
     if target_id == 'favoris': return False
@@ -16,9 +17,11 @@ def is_descendant(f_id, target_id, folders):
     return False
 
 def render_liste_rapports():
-    st.title("Catalogue des Rapports")
+    render_page_title(
+        title="Catalogue des Rapports",
+        subtitle="Accédez à l'ensemble des rapports disponibles et analysez vos données."
+    )
     
-    # Render state-driven tab system
     tab_titles = [t["title"] for t in st.session_state.open_tabs]
     st_tabs = st.tabs(tab_titles)
     
@@ -30,7 +33,6 @@ def render_liste_rapports():
                 render_report_details(tab_data)
 
 def render_catalogue():
-    # Toolbar Filters
     col_search, col_dept = st.columns(2)
     search_q = col_search.text_input("🔍 Rechercher un rapport...", key="cat_search_input")
     
@@ -48,26 +50,20 @@ def render_catalogue():
         selected_folder_id = next((k for k, v in folder_names.items() if v == selected_folder_name), "tous")
 
     with col_grid:
-        # Complex dynamic sorting logic matching ListeRapports.tsx
         sort_by = st.selectbox("Trier par", ["Nom (A-Z)", "Nom (Z-A)", "Code", "Date de création"])
-        
         filtered = st.session_state.reports
         
-        # Filter by selected folder structure
         if selected_folder_id == "favoris":
             filtered = [r for r in filtered if r["isFavorite"]]
         elif selected_folder_id != "tous":
             filtered = [r for r in filtered if is_descendant(r["folderId"], selected_folder_id, st.session_state.folders)]
 
-        # Search Query
         if search_q:
             filtered = [r for r in filtered if search_q.lower() in r["title"].lower() or search_q in r["code"]]
 
-        # Department Filter
         if selected_dept != "Tous":
             filtered = [r for r in filtered if r["department"] == selected_dept]
 
-        # Order logic
         if sort_by == "Nom (A-Z)":
             filtered = sorted(filtered, key=lambda x: x["title"])
         elif sort_by == "Nom (Z-A)":
@@ -81,34 +77,36 @@ def render_catalogue():
 
         for r in filtered:
             with st.container(border=True):
-                sc1, sc2 = st.columns([8, 2])
-                sc1.markdown(f"#### {r['title']} (Code: `{r['code']}`)")
-                sc1.caption(f"{r['department']} • {r['date']}")
+                sc1, sc2 = st.columns([8, 2], vertical_alignment="center")
+                with sc1:
+                    icon = "⭐" if r["isFavorite"] else "📊"
+                    # Using our custom luxury list card component
+                    render_list_card(title=r['title'], subtitle=f"{r['department']} • {r['date']}", metadata=f"Code: {r['code']}", icon=icon)
                 
-                with sc2.popover("Actions", use_container_width=True):
-                    # Action 1: Open Tab
-                    if st.button("Ouvrir", key=f"op_cat_{r['id']}", use_container_width=True):
-                        existing = next((t for t in st.session_state.open_tabs if t.get("reportId") == r["id"]), None)
-                        if not existing:
-                            st.session_state.open_tabs.append({
-                                "id": f"tab-{r['id']}",
-                                "title": r["title"],
-                                "type": "report",
-                                "reportId": r["id"]
-                            })
-                        st.rerun()
-                    
-                    # Action 2: Toggle favorite status
-                    fav_txt = "Retirer favoris" if r["isFavorite"] else "Ajouter favoris"
-                    if st.button(fav_txt, key=f"fav_cat_{r['id']}", use_container_width=True):
-                        r["isFavorite"] = not r["isFavorite"]
-                        st.rerun()
+                with sc2:
+                    with st.popover("Actions", use_container_width=True):
+                        if st.button("Ouvrir", key=f"op_cat_{r['id']}", use_container_width=True):
+                            existing = next((t for t in st.session_state.open_tabs if t.get("reportId") == r["id"]), None)
+                            if not existing:
+                                st.session_state.open_tabs.append({
+                                    "id": f"tab-{r['id']}",
+                                    "title": r["title"],
+                                    "type": "report",
+                                    "reportId": r["id"]
+                                })
+                            st.rerun()
+                        
+                        fav_txt = "Retirer favoris" if r["isFavorite"] else "Ajouter favoris"
+                        if st.button(fav_txt, key=f"fav_cat_{r['id']}", use_container_width=True):
+                            r["isFavorite"] = not r["isFavorite"]
+                            st.rerun()
 
 def render_report_details(tab_data):
-    st.subheader(tab_data["title"])
-    st.caption("Portail d'analyse technique et de contrôle géométrique des collections de maroquinerie, horlogerie, et accessoires.")
+    render_page_title(
+        title=tab_data["title"], 
+        subtitle="Portail d'analyse technique et de contrôle géométrique des collections de maroquinerie, horlogerie, et accessoires."
+    )
     
-    # Load fully mocked product database matching data.ts
     df = fetch_product_data()
 
     f1, f2, f3 = st.columns(3)
@@ -117,7 +115,6 @@ def render_report_details(tab_data):
     status_filter = f2.selectbox("Statut", ["Tous", "Validé", "En test", "Rejeté"], key=f"stat_sel_{tab_data['id']}")
     search_p = f3.text_input("Rechercher un produit (Code ou Nom)", key=f"search_prod_{tab_data['id']}")
 
-    # Apply filters
     filtered_df = df.copy()
     if cat_filter != "Toutes":
         filtered_df = filtered_df[filtered_df["categorie"] == cat_filter]
@@ -129,7 +126,6 @@ def render_report_details(tab_data):
             filtered_df["code_produit"].str.contains(search_p, case=False)
         ]
 
-    # Action Trigger Buttons
     c1, c2, c3 = st.columns([2, 2, 8])
     with c1:
         st.button("Afficher", key=f"display_{tab_data['id']}", use_container_width=True, type="primary")
@@ -137,12 +133,10 @@ def render_report_details(tab_data):
         if st.button("Réinitialiser", key=f"reset_{tab_data['id']}", use_container_width=True):
             st.rerun()
     with c3:
-        # Simulate local spreadsheet conversion and export
         if st.button("Exporter au format Excel", key=f"export_{tab_data['id']}"):
             st.toast("Préparation du fichier d'export...", icon="📥")
             st.success("Téléchargement initié avec succès (Fichier Excel généré).")
 
-    # Display dataset
     st.dataframe(filtered_df, use_container_width=True, hide_index=True)
 
     st.divider()
