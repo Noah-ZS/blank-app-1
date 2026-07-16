@@ -1,7 +1,8 @@
 import streamlit as st
 from components.metrics import render_kpi
+from components.typography import render_page_title
+from components.cards import render_list_card
 
-# Direct action router bindings
 def open_tab(report_id):
     """Binds item targets cleanly to local workspace view instances."""
     report = next((r for r in st.session_state.reports if r["id"] == report_id), None)
@@ -23,11 +24,13 @@ def open_tab(report_id):
     st.rerun()
 
 def render_accueil():
-    # User Profile Header
+    # User Profile Header using custom typography
     h_col1, h_col2 = st.columns([8, 2])
     with h_col1:
-        st.title("Bienvenue sur votre Infocentre")
-        st.caption("Votre portail de Business Intelligence dédié à la performance.")
+        render_page_title(
+            title="Bienvenue sur votre Infocentre", 
+            subtitle="Votre portail de Business Intelligence dédié à la performance."
+        )
         
     with h_col2:
         with st.popover("👤 NJ", use_container_width=True):
@@ -68,16 +71,14 @@ def render_accueil():
         
         for idx, item in enumerate(recents):
             with st.container(border=True):
-                sc1, sc2 = st.columns([8, 2])
-                sc1.markdown(f"**{item['title']}**")
-                sc1.caption(item["category"])
-                sc2.caption(item["time"])
-                
-                # Dynamic auto-redirect mappings
-                rep_match = next((r for r in st.session_state.reports if item["title"].lower() in r["title"].lower()), None)
-                if rep_match:
-                    if st.button("Ouvrir", key=f"rec_nav_{idx}"):
-                        open_tab(rep_match["id"])
+                sc1, sc2 = st.columns([8, 2], vertical_alignment="center")
+                with sc1:
+                    render_list_card(title=item['title'], subtitle=item["category"], metadata=item["time"], icon="📄")
+                with sc2:
+                    rep_match = next((r for r in st.session_state.reports if item["title"].lower() in r["title"].lower()), None)
+                    if rep_match:
+                        if st.button("Ouvrir", key=f"rec_nav_{idx}", use_container_width=True):
+                            open_tab(rep_match["id"])
 
     with col_fav:
         st.markdown("### ⭐ Vos Favoris")
@@ -88,14 +89,13 @@ def render_accueil():
         else:
             for r in favorites:
                 with st.container(border=True):
-                    sc1, sc2 = st.columns([8, 2])
-                    sc1.markdown(f"**{r['title']}**")
-                    sc1.caption(r["department"])
-                    
-                    # Popover configuration representing options toggles
-                    with sc2.popover("⚙️"):
-                        if st.button("Ouvrir le rapport", key=f"open_fav_pop_{r['id']}", use_container_width=True):
-                            open_tab(r["id"])
-                        if st.button("Retirer des favoris", key=f"rem_fav_pop_{r['id']}", use_container_width=True, type="primary"):
-                            r["isFavorite"] = False
-                            st.rerun()
+                    sc1, sc2 = st.columns([8, 2], vertical_alignment="center")
+                    with sc1:
+                        render_list_card(title=r['title'], subtitle=r["department"], metadata="", icon="⭐")
+                    with sc2:
+                        with st.popover("⚙️", use_container_width=True):
+                            if st.button("Ouvrir le rapport", key=f"open_fav_pop_{r['id']}", use_container_width=True):
+                                open_tab(r["id"])
+                            if st.button("Retirer des favoris", key=f"rem_fav_pop_{r['id']}", use_container_width=True, type="primary"):
+                                r["isFavorite"] = False
+                                st.rerun()
