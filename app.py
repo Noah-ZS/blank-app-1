@@ -43,7 +43,7 @@ def render_login_view():
         )
         
         with st.form("login_gateway"):
-            u_email = st.text_input("Identifiant professionnel", value="neeraj@datasoluva.com")
+            u_email = st.text_input("Identifiant professionnel", value="noah@talan.com")
             u_pw = st.text_input("Mot de passe", type="password", value="password")
             remember = st.checkbox("Se souvenir de moi", value=True)
             
